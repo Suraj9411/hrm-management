@@ -20,16 +20,19 @@ from django.contrib.messages import constants as messages
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Initialize environment variables
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+
 env = environ.Env(
-    DEBUG=(bool, True),
-    SECRET_KEY=(str, "django-insecure-j8op9)1q8$1&0^s&p*_0%d#pr@w9qj@1o=3#@d=a(^@9@zd@%j"),
+    DEBUG=(bool, False),
+    SECRET_KEY=(
+        str,
+        "django-insecure-j8op9)1q8$1&0^s&p*_0%d#pr@w9qj@1o=3#@d=a(^@9@zd@%j",
+    ),
     ALLOWED_HOSTS=(list, ["*"]),
     CSRF_TRUSTED_ORIGINS=(list, ["http://localhost:8000"]),
-    TIME_ZONE=(str, "Asia/Kolkata"),
 )
 
-# Read .env file, if it exists
 env.read_env(os.path.join(BASE_DIR, ".env"), overwrite=True)
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -39,8 +42,6 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
-
-CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 
 # Application definition
 
@@ -68,9 +69,10 @@ INSTALLED_APPS = [
     "widget_tweaks",
     "django_apscheduler",
 ]
-
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+
 APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Seconds
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -108,48 +110,71 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "horilla.wsgi.application"
 
-# Database configuration
+
+# Database
+# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+
 if env("DATABASE_URL", default=None):
     DATABASES = {
-        "default": env.db("DATABASE_URL"),
+        "default": env.db(),
     }
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME", "horilla_db"),
-            "USER": os.environ.get("DB_USER", ""),
-            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-            "HOST": os.environ.get("DB_HOST", ""),
-            "PORT": os.environ.get("DB_PORT", "5432"),
+            "ENGINE": env("DB_ENGINE", default="django.db.backends.sqlite3"),
+            "NAME": env(
+                "DB_NAME",
+                default=os.path.join(
+                    BASE_DIR,
+                    "TestDB_Horilla.sqlite3",
+                ),
+            ),
+            "USER": env("DB_USER", default=""),
+            "PASSWORD": env("DB_PASSWORD", default=""),
+            "HOST": env("DB_HOST", default=""),
+            "PORT": env("DB_PORT", default=""),
         }
     }
 
 # Password validation
+# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
+
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = "/static/"
+# https://docs.djangoproject.com/en/4.1/howto/static-files/
+
+STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
-
 # Default primary key field type
+# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Messages framework
+
 MESSAGE_TAGS = {
     messages.DEBUG: "oh-alert--warning",
     messages.INFO: "oh-alert--info",
@@ -158,16 +183,21 @@ MESSAGE_TAGS = {
     messages.ERROR: "oh-alert--danger",
 }
 
+
+CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+
 LOGIN_URL = "/login"
 
+
 SIMPLE_HISTORY_REVERT_DISABLED = True
+
 
 DJANGO_NOTIFICATIONS_CONFIG = {
     "USE_JSONFIELD": True,
     "SOFT_DELETE": True,
     "USE_WATCHED": True,
     "NOTIFICATIONS_STORAGE": "notifications.storage.DatabaseStorage",
-    "TEMPLATE": "notifications.html",
+    "TEMPLATE": "notifications.html",  # Add this line
 }
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
@@ -186,18 +216,21 @@ LOCALE_PATHS = [
     join(BASE_DIR, "horilla", "locale"),
 ]
 
+
 # Internationalization
+# https://docs.djangoproject.com/en/4.1/topics/i18n/
+
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = env("TIME_ZONE")
+
+TIME_ZONE = env("TIME_ZONE", default="Asia/Kolkata")
 
 USE_I18N = True
+
 USE_L10N = True
+
 USE_TZ = True
 
-# CORS Headers configuration (since you have corsheaders in middleware)
-CORS_ALLOW_ALL_ORIGINS = True
-
-# Security settings - only when DEBUG is False (production)
+# Production settings
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_SSL_REDIRECT = True
